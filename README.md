@@ -1,2 +1,2 @@
-# greylinx
+# Greylinx
 My time at greylinx
