@@ -4,7 +4,7 @@ This project was developed during my time at Graylinx to use LLMs to help genera
 
 ## Project Overview
 
-This is a local Streamlit application that connects to a MySQL database and uses a locally hosted LLM (Llama3) to:
+This is a local Streamlit application that is running on a virtual python environment. It connects to a MySQL database and uses a locally hosted LLM (Llama3) to:
 - Convert natural language questions into SQL queries
 - Execute those queries on a database
 - Return results in both tabular and natural language format
