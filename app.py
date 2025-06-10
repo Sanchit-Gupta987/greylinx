@@ -18,9 +18,22 @@ os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY", "")
 DB_URI = "mysql+pymysql://root:@localhost:3306/sample_db"
 try:
     engine = sqlalchemy.create_engine(DB_URI)
-    db = SQLDatabase(engine)
+
+    relevant_tables = [
+        "ahu_005ca0_om_p", "ahu_005ca0_om_p__chw_table", "ahu_005ca0_om_p__fan_power_table", "ahu_005ca0_om_p__rpm_table",
+        "ahu_005da0_om_p", "ahu_005da0_om_p__chw_table", "ahu_005da0_om_p__fan_power_table", "ahu_005da0_om_p__rpm_table",
+        "ahu_005ea0_om_p", "ahu_005ea0_om_p__chw_table", "ahu_005ea0_om_p__fan_power_table", "ahu_005ea0_om_p__rpm_table",
+        "ahu_005fa0_om_p", "ahu_005fa0_om_p__chw_table", "ahu_005fa0_om_p__fan_power_table", "ahu_005fa0_om_p__rpm_table",
+        "ahu_0060a0_om_p", "ahu_0060a0_om_p__chw_table", "ahu_0060a0_om_p__fan_power_table", "ahu_0060a0_om_p__rpm_table",
+        "ahu_0101a0_om_p", "ahu_0101a0_om_p__chw_table", "ahu_0101a0_om_p__fan_power_table", "ahu_0101a0_om_p__rpm_table",
+        "ch_000bb0_om_p", "ch_010001b00000_om_p", "ch_010001b00000_om_p__amps_table", "ch_010001b00000_om_p__dis_pre_table",
+        "ch_010001b00000_om_p__dis_tem_table", "ch_010001b00000_om_p__suc_pre_table",
+        "pu_0010b1_om_p", "reference_om_p", "secpu_000bb2_om_p"
+    ]
+    
+    db = SQLDatabase(engine, include_tables=relevant_tables)
     st.sidebar.success("Connected to MySQL database!")
-    st.sidebar.info(f"Tables considered by LLM: {'All (default)' if not db.get_usable_table_names() else ', '.join(db.get_usable_table_names())}")
+    st.sidebar.info(f"Tables considered by LLM: {', '.join(relevant_tables)}")
 except Exception as e:
     st.sidebar.error(f"DB connection failed: {e}")
     st.stop()
@@ -90,26 +103,18 @@ except Exception as e:
 
 # --- 6. Function to Extract SQL from LLM Output ---
 def extract_sql_query(llm_output: str) -> Optional[str]:
-    # Step 1: Try to extract from ```sql ... ```
     match_sql_block = re.search(r"```sql\s*(.*?)\s*```", llm_output, re.DOTALL | re.IGNORECASE)
     if match_sql_block:
         return match_sql_block.group(1).strip()
-
-    # Step 2: Try to extract from generic code block ``` ... ```
     match_generic_block = re.search(r"```\s*(.*?)\s*```", llm_output, re.DOTALL)
     if match_generic_block:
         code_block = match_generic_block.group(1).strip()
         if _looks_like_sql(code_block):
             return code_block
-
-    # Step 3: Try to split by "SQLQuery:" if present
     if "SQLQuery:" in llm_output:
         llm_output = llm_output.split("SQLQuery:", 1)[1].strip()
-
-    # Step 4: Keyword-based heuristic extraction
     lines = llm_output.strip().splitlines()
     sql_keywords = ["SELECT", "INSERT", "UPDATE", "DELETE", "WITH", "CREATE", "ALTER", "DROP"]
-
     for line in lines:
         stripped = line.strip()
         if any(stripped.upper().startswith(kw) for kw in sql_keywords):
@@ -117,7 +122,6 @@ def extract_sql_query(llm_output: str) -> Optional[str]:
                 return stripped.split(';')[0].strip() + ';'
             else:
                 return stripped
-
     st.warning("Could not confidently extract SQL. The LLM might have included extra text.")
     return None
 
@@ -131,7 +135,7 @@ st.title("HVAC Data Assistant ⚡")
 st.subheader("Ask questions about your HVAC data")
 
 with st.form("query_form"):
-    user_question = st.text_area("Your question:", placeholder="e.g., Show me the username and email for all users in the user table.")
+    user_question = st.text_area("Your question:", placeholder="e.g., What is the highest recorded temperature.")
     submitted = st.form_submit_button("Ask AI")
 
 if submitted and user_question:
@@ -175,13 +179,11 @@ if submitted and user_question:
                         st.write(final_answer)
                     except Exception as answer_exc:
                         st.error(f"Error generating final answer: {answer_exc}")
-
                 except Exception as db_exc:
                     st.error(f"Error executing SQL query: {db_exc}")
                     st.warning("The extracted SQL might still be invalid or cause a database error.")
             else:
                 st.error("Failed to extract a valid SQL query from the LLM's response. Please check the raw output above.")
-
         except Exception as e:
             st.error(f"An error occurred during the process: {e}")
             import traceback
@@ -191,7 +193,7 @@ st.sidebar.markdown("---")
 st.sidebar.header("⚠️ Important Notes")
 st.sidebar.markdown(f"""
 - **LLM Model:** This app currently uses `llama3`.
-- **`include_tables`:** For optimal performance and accuracy, it's **highly recommended** to use the `include_tables` argument in `SQLDatabase` initialization (currently commented out). Example: `relevant_tables = ['user', 'another_table_from_sample_db']`.
+- **`include_tables`:** This app limits LLM access to relevant `_om_p` HVAC-related tables.
 - **`verbose=True`:** The `LLMChain` is set to `verbose=True`. Check the terminal for intermediate steps.
 - **Custom Prompt & Parsing:** This version uses a stricter custom prompt and attempts to parse the SQL from the LLM's output before execution.
 """)
