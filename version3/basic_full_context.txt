@@ -1,0 +1,116 @@
+[START OF HVAC DATABASE CONTEXT]
+
+This document outlines the structure of a database containing HVAC performance data.
+
+[BLOCK START: TABLE_SCHEMAS]
+
+# The database contains three main types of equipment: AHUs, Chillers, and Pumps.
+# Tables ending in `_om_p` are generic key-value stores.
+# Tables with `__` in the name are for specific, pre-calculated time-series models.
+
+# --- AHU (Air Handling Unit) Tables ---
+
+# Raw AHU Sensor Data (Key-Value)
+# Contains a wide variety of sensor readings distinguished by `param_id`.
+TABLE: ahu_[unit_code]_om_p
+  - PURPOSE: General sensor readings for a specific Air Handling Unit.
+  - COLUMNS: id, measured_time, param_id, param_value, created_at
+
+# Specific AHU Measurement Tables
+TABLE: ahu_[unit_code]_om_p__chw_table
+  - PURPOSE: Chilled Water energy usage for the AHU.
+  - COLUMNS: measured_time, CHW_Energy, CHW_Energy_Estimate, CHW_Energy_Error, Fault_Status
+
+TABLE: ahu_[unit_code]_om_p__fan_power_table
+  - PURPOSE: Fan power consumption and efficiency metrics for the AHU.
+  - COLUMNS: measured_time, SA_CFM, DSP, FAN_POWER, FAN_POWER_Estimate, FAN_POWER_Error, Fault_Status
+
+TABLE: ahu_[unit_code]_om_p__rpm_table
+  - PURPOSE: Fan speed and airflow data for the AHU.
+  - COLUMNS: measured_time, SA_CFM, DSP, RPM
+
+# --- Chiller (CH) Tables ---
+
+# Raw Chiller Sensor Data (Key-Value)
+# Contains a wide variety of sensor readings distinguished by `param_id`.
+TABLE: ch_[unit_code]_om_p
+  - PURPOSE: General sensor readings for a specific Chiller unit.
+  - COLUMNS: id, measured_time, param_id, param_value, created_at
+
+# Specific Chiller Measurement Tables
+TABLE: ch_[unit_code]_om_p__amps_table
+  - PURPOSE: Compressor amperage (actual vs. estimate).
+  - COLUMNS: measured_time, amps, Amps_Estimate, Amps_Error, Fault_Status
+
+TABLE: ch_[unit_code]_om_p__dis_pre_table
+  - PURPOSE: Compressor discharge pressure (actual vs. estimate).
+  - COLUMNS: measured_time, Disc_pres, Disc_pres_Estimate, Disc_pres_Error, Fault_Status
+
+TABLE: ch_[unit_code]_om_p__suc_pre_table
+  - PURPOSE: Compressor suction pressure (actual vs. estimate).
+  - COLUMNS: measured_time, Suct_pres, Suct_pres_Estimate, Suct_pres_Error, Fault_Status
+
+TABLE: ch_[unit_code]_om_p__dis_tem_table
+  - PURPOSE: Compressor discharge temperature (actual vs. estimate).
+  - COLUMNS: measured_time, Disc_temp, Disc_temp_Estimate, Disc_temp_Error, Fault_Status
+
+# --- Pump (PU) Tables ---
+
+# Raw Pump Status Data (Key-Value)
+TABLE: pu_[unit_code]_om_p
+  - PURPOSE: General status readings for a specific Pump.
+  - COLUMNS: id, measured_time, param_id, param_value, created_at
+
+[BLOCK END: TABLE_SCHEMAS]
+
+
+[BLOCK START: PARAM_ID_DEFINITIONS]
+
+# These `param_id` values are used ONLY in the key-value tables (`*_om_p`).
+# Use this section to find the correct `param_id` string when querying those tables.
+
+# For AHU tables (e.g., `ahu_005ca0_om_p`):
+  OAT: Outside Air Temperature
+  SAT: Supply Air Temperature
+  RAT: Return Air Temperature
+  MAT: Mixed Air Temperature
+  SA_CFM: Supply Air Flow (in Cubic Feet per Minute)
+  DSP: Duct Static Pressure
+  DSP_SP: Duct Static Pressure Setpoint
+  SAT_SP: Supply Air Temperature Setpoint
+  CHW_Vlv_Pos: Chilled Water Valve Position (as a percentage)
+  Fault_Status: Binary flag indicating a fault (1 for fault, 0 for normal)
+
+# For Chiller tables (e.g., `ch_000bb0_om_p`):
+  CHW_In_Temp: Chilled Water Inlet Temperature to the Chiller
+  CHW_Out_Temp: Chilled Water Outlet Temperature from the Chiller
+  amps: Compressor Amperage (Current)
+  Cmp_Dis_Pre: Compressor Discharge Pressure
+  Cmp_Suc_Pre: Compressor Suction Pressure
+  Dis_SuperHeat: Discharge Superheat temperature
+  Fault_Status: Binary flag indicating a fault (1 for fault, 0 for normal)
+
+# For Pump tables (e.g., `pu_0010b1_om_p`):
+  Pri_Pmp_On_Off: Primary Pump On/Off status (1 for On, 0 for Off)
+  Sec_Pmp_On_Off: Secondary Pump On/Off status (1 for On, 0 for Off)
+  Fault_Status: Binary flag indicating a fault (1 for fault, 0 for normal)
+
+[BLOCK END: PARAM_ID_DEFINITIONS]
+
+
+[BLOCK START: KEY_RULES]
+
+# IMPORTANT LOGIC FOR QUERYING:
+#
+# RULE 1: The database separates generic sensor readings from specific, calculated metrics.
+#   - Generic readings are in `*_om_p` tables and use `param_id` and `param_value` columns.
+#   - Specific metrics (like RPM, FAN_POWER, amps) have their own tables (`__rpm_table`, `__fan_power_table`, etc.) and dedicated columns.
+#
+# RULE 2: To find a metric (e.g., 'RPM for AHU 5ca0'):
+#   - FIRST, check if a specific table exists for it (e.g., `ahu_005ca0_om_p__rpm_table`). If yes, query the direct column (`RPM`) from that table.
+#   - IF NOT, query the general `_om_p` table (e.g., `ahu_005ca0_om_p`) and use a `WHERE` clause on the `param_id` column (e.g., `WHERE param_id = 'SAT'`). Refer to the PARAM_ID_DEFINITIONS block for the correct ID.
+
+[BLOCK END: KEY_RULES]
+
+
+[END OF HVAC DATABASE CONTEXT]
