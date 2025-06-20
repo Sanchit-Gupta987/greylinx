@@ -1,0 +1,80 @@
+--- DATABASE CONTEXT ---
+This document provides essential context for all relevant tables in the mysql database.
+
+## Relevant tables
+- All the relevant tables in the database are : ahu_005ca0_om_p, ahu_005ca0_om_p__chw_table, ahu_005ca0_om_p__fan_power_table, ahu_005ca0_om_p__rpm_table, ahu_005da0_om_p, ahu_005da0_om_p__chw_table, ahu_005da0_om_p__fan_power_table, ahu_005da0_om_p__rpm_table, ahu_005ea0_om_p, ahu_005ea0_om_p__chw_table, ahu_005ea0_om_p__fan_power_table, ahu_005ea0_om_p__rpm_table, ahu_005fa0_om_p, ahu_005fa0_om_p__chw_table, ahu_005fa0_om_p__fan_power_table, ahu_005fa0_om_p__rpm_table, ahu_0060a0_om_p, ahu_0060a0_om_p__chw_table, ahu_0060a0_om_p__fan_power_table, ahu_0060a0_om_p__rpm_table, ahu_0101a0_om_p, ahu_0101a0_om_p__chw_table, ahu_0101a0_om_p__fan_power_table, ahu_0101a0_om_p__rpm_table, ch_000bb0_om_p, ch_010001b00000_om_p, ch_010001b00000_om_p__amps_table, ch_010001b00000_om_p__dis_pre_table, ch_010001b00000_om_p__dis_tem_table, ch_010001b00000_om_p__suc_pre_table, pu_0010b1_om_p, reference_om_p, secpu_000bb2_om_p
+
+
+### Primary AHU Data (Pattern: `ahu_[unit_code]_om_p`)
+- Description: Key-value table for AHU sensor readings. Use `param_id` and `param_value` columns.
+- Columns: id, ss_id, measured_time, param_id, param_value, created_at, modified_at
+- Key Parameters (`param_id`):
+  - `OAT`: Outside Air Temperature.
+  - `SAT`: Supply Air Temperature.
+  - `RAT`: Return Air Temperature.
+  - `MAT`: Mixed Air Temperature.
+  - `SAT_SP`: Supply Air Temperature Setpoint.
+  - `DSP`: Discharge Static Pressure.
+  - `DSP_SP`: Setpoint for the discharge static pressure.
+  - `SA_CFM`: Supply Air flow rate in cubic feet per minute.
+  - `CHW_Vlv_Pos`: Position of the chilled water valve (0-100%).
+  - `SAF_VFD_Speed`: Commanded speed to the Supply Air Fan VFD.
+  - `RPM`: Revolutions per minute of a fan.
+  - `FAN_POWER`: Measured power consumption of the fan.
+
+### AHU Sub-Tables
+The following tables provide detailed, time-series data for specific AHU components.
+
+#### AHU Chilled Water Table (Pattern: `...__chw_table`)
+- Description: Contains data related to the chilled water coil in the Air Handling Unit.
+- Columns:
+    - `measured_time`: Timestamp of the reading.
+    - `CHW_In_Temp`: Chilled Water Inlet Temperature.
+    - `CHW_Out_Temp`: Chilled Water Outlet Temperature.
+    - `CHW_Vlv_Pos`: Position of the chilled water valve (0-100%).
+
+#### AHU Fan Power Table (Pattern: `...__fan_power_table`)
+- Description: Provides detailed information on the fan's power consumption.
+- Columns:
+    - `measured_time`: Timestamp of the reading.
+    - `SA_CFM`: Supply Air flow rate in cubic feet per minute.
+    - `DSP`: Discharge Static Pressure.
+    - `FAN_POWER`: Measured power consumption of the fan.
+    - `FAN_POWER_Error`: The error between the estimated and measured fan power.
+    - `Fault_Status`: A flag indicating a fault in the fan system.
+
+#### AHU RPM Table (Pattern: `...__rpm_table`)
+- Description: Records the speed of the supply air fan.
+- Columns:
+    - `measured_time`: Timestamp of the reading.
+    - `SA_CFM`: Supply Air flow rate in cubic feet per minute.
+    - `DSP`: Discharge Static Pressure.
+    - `RPM`: Revolutions per minute of the fan.
+
+### Detailed Chiller Data (Table: `ch_010001b00000_om_p`)
+- Description: Key-value table for detailed chiller thermodynamics. Use `param_id` and `param_value`.
+- Columns: id, ss_id, measured_time, param_id, param_value, created_at, modified_at, measured_time_calculated
+- Key Parameters (`param_id`):
+  - `CHW_In_Temp`: Chilled Water Inlet Temperature.
+  - `CHW_Out_Temp`: Chilled Water Outlet Temperature.
+  - `CH_Out_Temp_SP`: Chiller Outlet Temperature Setpoint.
+  - `CDW_In_Temp`: Condenser Water Inlet Temperature.
+  - `CDW_Out_Temp`: Condenser Water Outlet Temperature.
+  - `Cmp_Dis_Pre`: Compressor Discharge Pressure.
+  - `Cmp_Suc_Pre`: Compressor Suction Pressure.
+  - `Dis_SuperHeat`: Discharge Superheat.
+  - `amps`: Amperes (electrical current drawn).
+  - `Fault_Status`: A flag indicating a system fault.
+
+### Chiller Modeling Tables (Pattern: `ch_...__[measurement]_table`)
+- Description: Traditional tables for chiller fault detection, with columns like `Amps_Estimate`, `Amps_Error`, `Fault_Status`.
+- Columns: measured_time, CW_IPT, CW_OPT, CD_WET, amps, Disc_pres, Suct_pres, ..._Estimate, ..._Error, Fault_Status
+
+### Pump Status Tables (e.g., `pu_0010b1_om_p`, `secpu_000bb2_om_p`)
+- Description: Key-value tables for simple pump status.
+- Columns: id, ss_id, measured_time, param_id, param_value, created_at, modified_at
+- Key Parameters (`param_id`):
+  - `Pri_Pmp_On_Off`: Primary Pump On/Off
+  - `Pri_Pmp_Trip_SS`: Primary Pump Trip Status
+  - `Sec_Pmp_On_Off`: Secondary Pump On/Off
+  - `Sec_Pmp_Trip_SS`: Secondary Pump Trip Status
