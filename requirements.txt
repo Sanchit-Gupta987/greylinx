@@ -1,5 +1,29 @@
-langchain_openai 
-langchain_core
-python-dotenv
+# Core and Integrations
+langchain
+langchain-core
+langchain-community
+langchain-openai
+langchain-huggingface
+langchain-ollama
+langchain-chroma
+
+# Embeddings
+sentence-transformers
+
+# Web Application
 streamlit
-langchain_community
+python-dotenv
+
+# Database
+sqlalchemy
+pymysql
+
+# Document Processing
+unstructured
+
+# Output Formatting
+fpdf
+
+# Visualization
+plotly
+kaleido
