@@ -2,11 +2,6 @@ import os
 
 # This script generates a SINGLE, simplified context file for a non-RAG approach.
 
-# ==============================================================================
-# 1. CURATED CONTEXT DATA
-# We are selecting only the most critical tables and parameters to keep the context short.
-# ==============================================================================
-
 # A curated list of the most important param_ids for the main AHU table
 curated_ahu_params = {
     "OAT": "Outside Air Temperature.",
