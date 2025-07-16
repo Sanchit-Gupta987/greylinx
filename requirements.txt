@@ -2,10 +2,12 @@
 langchain
 langchain-core
 langchain-community
+langgraph
 langchain-openai
 langchain-huggingface
 langchain-ollama
 langchain-chroma
+langchain-nvidia-ai-endpoints
 
 # Embeddings
 sentence-transformers
@@ -23,7 +25,10 @@ unstructured
 
 # Output Formatting
 fpdf
+img2pdf
+markdown
 
 # Visualization
 plotly
 kaleido
+matplotlib
