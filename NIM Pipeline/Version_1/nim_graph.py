@@ -65,7 +65,7 @@ def initialize():
         db = SQLDatabase(engine)
         
         # Using Llama 3 70B as requested
-        llm = ChatNVIDIA(model="meta/llama3-70b-instruct")
+        llm = ChatNVIDIA(model="meta/llama-3.3-70b-instruct")
         st.sidebar.success("✅ Database and LLM initialized successfully!")
         return db, llm
     except Exception as e:
